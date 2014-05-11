@@ -6,16 +6,18 @@
 
    /** Constants for Math **/
 /* Microphone / Preamp Characteristics */
+/* The Sensitivity must be calibrated. */
+/* The ADMP401 ranges from -45 to -39. Typical value is -42 */
 const int Sensitivity = -44;                         // dB re 1V/pA (See Data Sheet)
 const float Transfer = 1000*pow(10, Sensitivity/20); // mV/pA
-//const float Transfer = 6.3096;                     // mV/pA (Microphone Transfer, See data sheet)
 
-const int Gain = 250;                          // Preamp Gain
-const float dBGain = 32;//20*log10(Gain);          // In dB
+
+const int Gain = 67;                          // Preamp Gain
+const float dBGain = 20*log10(Gain);          // In dB
 
 /* uC Charactaristics */
 const int DataSize = 32768/8;                 // Samples per Gathering. Too big = overlfow stdDev
-const int DataMinus = DataSize - 1;
+const int DataMinus = DataSize - 1;           // Need this number for math. Why do the subtraction in the function?
 const int InputVoltage = 3300;                // mV
 const int ADCrange = 1024;                    // sample range
 const float mVscalar = InputVoltage/ADCrange; // mV / (adc sample) ** Division is messy do this up here!
@@ -25,7 +27,7 @@ const int average = ADCrange/2;   // Half of 1024. The signal is centered on "0"
 /** Variables **/
 double stdDev = 0;                // Large floating point number
 float dBSPL = 0;                  // normal sized floating point number
-unsigned int i = 0;               // Coutning things!
+unsigned int i = 0;               // counting things!
 
 
  void setup ()
@@ -52,11 +54,11 @@ unsigned int i = 0;               // Coutning things!
     }	
     stdDev = sqrt(stdDev/DataMinus);  // Division Part of Standard Deviation
     
-    // This value should be correct
+    // This is the RMS voltage coming in.
     Serial.print("mV RMS: \t");
     Serial.println(stdDev);
     
-    // Do the Conversion (This part doesn't seem to work):
+    // Do the Conversion to dBSPL:
     dBSPL = 20*log10(stdDev/Transfer) - dBGain + 94;
     Serial.print("dBSPL: \t\t");
     Serial.println(dBSPL);
